@@ -1,20 +1,26 @@
-const express = require('express')
-const router = express.Router()
+const express = require("express");
+const router = express.Router();
 
-// getting the data from users
-const users = require('../data/users')
-
+const users = require("../data/users");
+const error = require("../utilities/error");
 
 router
   .route("/")
-  .get((req, res) => { // get all users
-    res.json(users);
+  .get((req, res) => {
+    const links = [
+      {
+        href: "users/:id",
+        rel: ":id",
+        type: "GET",
+      },
+    ];
+
+    res.json({ users, links });
   })
-  .post((req, res) => { // create a new user
+  .post((req, res, next) => {
     if (req.body.name && req.body.username && req.body.email) {
       if (users.find((u) => u.username == req.body.username)) {
-        res.json({ error: "Username Already Taken" });
-        return;
+        next(error(409, "Username Already Taken"));
       }
 
       const user = {
@@ -26,17 +32,31 @@ router
 
       users.push(user);
       res.json(users[users.length - 1]);
-    } else res.json({ error: "Insufficient Data" });
+    } else next(error(400, "Insufficient Data"));
   });
 
 router
   .route("/:id")
-  .get((req, res, next) => { // get a specific user by id
+  .get((req, res, next) => {
     const user = users.find((u) => u.id == req.params.id);
-    if (user) res.json(user);
+
+    const links = [
+      {
+        href: `/${req.params.id}`,
+        rel: "",
+        type: "PATCH",
+      },
+      {
+        href: `/${req.params.id}`,
+        rel: "",
+        type: "DELETE",
+      },
+    ];
+
+    if (user) res.json({ user, links });
     else next();
   })
-  .patch((req, res, next) => { // edit a user's information
+  .patch((req, res, next) => {
     const user = users.find((u, i) => {
       if (u.id == req.params.id) {
         for (const key in req.body) {
@@ -49,7 +69,7 @@ router
     if (user) res.json(user);
     else next();
   })
-  .delete((req, res, next) => { // deleting a specific user
+  .delete((req, res, next) => {
     const user = users.find((u, i) => {
       if (u.id == req.params.id) {
         users.splice(i, 1);

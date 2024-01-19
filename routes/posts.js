@@ -1,14 +1,23 @@
-const express = require('express')
-const router = express.Router()
+const express = require("express");
+const router = express.Router();
 
-const posts = require("../data/posts")
+const posts = require("../data/posts");
+const error = require("../utilities/error");
 
 router
   .route("/")
-  .get((req, res) => { // getting all posts
-    res.json(posts);
+  .get((req, res) => {
+    const links = [
+      {
+        href: "posts/:id",
+        rel: ":id",
+        type: "GET",
+      },
+    ];
+
+    res.json({ posts, links });
   })
-  .post((req, res) => { // creating a new post
+  .post((req, res, next) => {
     if (req.body.userId && req.body.title && req.body.content) {
       const post = {
         id: posts[posts.length - 1].id + 1,
@@ -19,17 +28,31 @@ router
 
       posts.push(post);
       res.json(posts[posts.length - 1]);
-    } else res.json({ error: "Insufficient Data" });
+    } else next(error(400, "Insufficient Data"));
   });
 
 router
   .route("/:id")
-  .get((req, res, next) => { // getting a specific post by id
+  .get((req, res, next) => {
     const post = posts.find((p) => p.id == req.params.id);
-    if (post) res.json(post);
+
+    const links = [
+      {
+        href: `/${req.params.id}`,
+        rel: "",
+        type: "PATCH",
+      },
+      {
+        href: `/${req.params.id}`,
+        rel: "",
+        type: "DELETE",
+      },
+    ];
+
+    if (post) res.json({ post, links });
     else next();
   })
-  .patch((req, res, next) => { // updating a post
+  .patch((req, res, next) => {
     const post = posts.find((p, i) => {
       if (p.id == req.params.id) {
         for (const key in req.body) {
@@ -42,7 +65,7 @@ router
     if (post) res.json(post);
     else next();
   })
-  .delete((req, res, next) => { // deleting a post
+  .delete((req, res, next) => {
     const post = posts.find((p, i) => {
       if (p.id == req.params.id) {
         posts.splice(i, 1);
