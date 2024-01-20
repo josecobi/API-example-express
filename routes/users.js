@@ -92,7 +92,7 @@ router
   router   
     .route("/:id/posts")
     .get((req, res, next) => {
-        // Check if there a user was provided
+        // Check if a user id was provided
         if(!req.params.id){
             next(error(400, "Insufficient Data"));
         }
@@ -102,7 +102,6 @@ router
             next(error(404, "User not found"));
         }
         else{
-            console.log(user);
             const userPosts = posts.filter((p) => p.userId === user.id);
             const links = [
                 {
