@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const error = require("../utilities/error");
 
 const comments = require("../data/comments");
 
@@ -48,7 +49,7 @@ router
         else {
             const links =[
                 {
-                    href: "/comments/:id",
+                    href: `/comments/${req.params.id}`,
                     rel: "comments",
                     type: "GET"
                 }
