@@ -7,15 +7,31 @@ const error = require("../utilities/error");
 router
   .route("/")
   .get((req, res) => {
-    const links = [
-      {
-        href: "posts/:id",
-        rel: ":id",
-        type: "GET",
-      },
-    ];
+    
+      try{
+        //FIlter posts by useID
+        //get the user id from the query
+        const userId = req.query.userId;
+        console.log("userId:", userId)
+        //if userId is provided send response with the posts from that user
+        let filteredPosts = [];
+        if(userId){
+            console.log("all posts:", posts);
+            filteredPosts = posts.filter((post) => post.userId === parseInt(userId));
+            console.log("Filtered posts:", filteredPosts);
+            res.json({ filteredPosts, });
+        } 
 
-    res.json({ posts, links });
+        else {
+            res.json({ posts });
+        }
+    }
+    catch(error){
+        console.log(error);
+        res(error(500, "Internal Server Error"));
+    }
+
+    
   })
   .post((req, res, next) => {
     if (req.body.userId && req.body.title && req.body.content) {
